@@ -1,0 +1,16 @@
+# Plantilla opcional de despliegue; no contiene claves reales.
+services:
+  - type: web
+    name: studyflow-fullstack
+    runtime: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 2h

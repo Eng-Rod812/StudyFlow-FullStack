@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="StudyFlow: gestiona tus tareas académicas de forma privada y sencilla.">
+  <title>StudyFlow · Tu espacio para avanzar</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="StudyFlow, inicio"><span class="brand-icon" aria-hidden="true">✦</span> Study<span>Flow</span></a>
+      <span class="topbar-label">ORGANIZA · ENFÓCATE · AVANZA</span>
+      <button id="logout-button" type="button" class="button button-quiet" hidden>Cerrar sesión</button>
+    </header>
+
+    <main id="contenido">
+      <section id="auth-section" class="auth-layout" aria-labelledby="auth-title">
+        <div class="auth-copy">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> TU ESPACIO DE PRODUCTIVIDAD</span>
+          <h1>Menos pendientes.<br><em>Más progreso.</em></h1>
+          <p>Organiza tus tareas de estudio, da seguimiento a tus avances y retoma tu ritmo desde un solo lugar.</p>
+          <div class="feature-list" aria-label="Características de StudyFlow">
+            <div><span class="feature-icon">✓</span> Tus tareas, siempre organizadas</div>
+            <div><span class="feature-icon">✓</span> Progreso visible al instante</div>
+            <div><span class="feature-icon">✓</span> Acceso privado con tu cuenta</div>
+          </div>
+          <p class="subtle-note">Proyecto académico · Avance del reto Full Stack</p>
+        </div>
+        <div class="auth-card">
+          <span class="eyebrow">BIENVENIDO A STUDYFLOW</span>
+          <h2 id="auth-title">Iniciar sesión</h2>
+          <p id="auth-description" class="card-description">Continúa donde dejaste tus pendientes.</p>
+          <div class="auth-tabs" role="group" aria-label="Seleccionar modo">
+            <button id="tab-login" class="auth-tab active" type="button" aria-pressed="true">Ingresar</button>
+            <button id="tab-register" class="auth-tab" type="button" aria-pressed="false">Crear cuenta</button>
+          </div>
+          <form id="auth-form" novalidate>
+            <div id="name-field" class="field" hidden>
+              <label for="auth-name">Nombre</label>
+              <input id="auth-name" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Tu nombre completo">
+            </div>
+            <div class="field">
+              <label for="auth-email">Correo electrónico</label>
+              <input id="auth-email" name="email" type="email" maxlength="254" autocomplete="username" placeholder="ejemplo@correo.com" required>
+            </div>
+            <div class="field">
+              <label for="auth-password">Contraseña</label>
+              <input id="auth-password" name="password" type="password" minlength="8" maxlength="72" autocomplete="current-password" placeholder="Mínimo 8 caracteres" required>
+            </div>
+            <button type="submit" class="button button-primary button-wide" id="auth-submit">Iniciar sesión <span aria-hidden="true">→</span></button>
+            <p id="auth-message" class="status-line" role="status" aria-live="polite"></p>
+          </form>
+          <div class="auth-bottom">Tus contraseñas se almacenan cifradas mediante hash; no en texto plano.</div>
+        </div>
+      </section>
+
+      <section id="dashboard-section" class="dashboard" aria-labelledby="dashboard-title" hidden>
+        <div class="dashboard-heading">
+          <div>
+            <span class="eyebrow">TU PANEL ACADÉMICO</span>
+            <h1 id="dashboard-title">Hola, <span id="user-name">estudiante</span><span class="wave"> ✦</span></h1>
+            <p>Un paso a la vez. Cada tarea completada cuenta.</p>
+          </div>
+          <div class="today-label" id="today-label"></div>
+        </div>
+
+        <div class="stats" aria-label="Resumen de tareas">
+          <article class="stat-card"><span class="stat-label">TOTAL DE TAREAS</span><strong id="total-count">0</strong><span class="stat-note">En tu lista</span></article>
+          <article class="stat-card"><span class="stat-label">PENDIENTES</span><strong id="pending-count">0</strong><span class="stat-note">Por realizar</span></article>
+          <article class="stat-card"><span class="stat-label">COMPLETADAS</span><strong id="done-count">0</strong><span class="stat-note">¡Bien hecho!</span></article>
+        </div>
+
+        <section class="task-panel" aria-labelledby="task-title">
+          <div class="panel-header">
+            <div><span class="eyebrow">TU ESPACIO DE TRABAJO</span><h2 id="task-title">Mis tareas</h2></div>
+            <span class="count-pill" id="task-counter">0 de 0 completadas</span>
+          </div>
+          <div class="progress-track" role="progressbar" id="progress" aria-label="Progreso de tareas" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progress-fill"></div></div>
+          <form id="task-form" class="task-form">
+            <label for="task-input" class="visually-hidden">Nombre de nueva tarea</label>
+            <input id="task-input" type="text" minlength="1" maxlength="140" required placeholder="¿Qué necesitas hacer hoy?">
+            <button class="button button-primary" type="submit">+ Agregar tarea</button>
+          </form>
+          <div class="task-toolbar">
+            <div class="filters" role="group" aria-label="Filtrar tareas">
+              <button type="button" class="filter active" data-filter="all" aria-pressed="true">Todas</button>
+              <button type="button" class="filter" data-filter="pending" aria-pressed="false">Pendientes</button>
+              <button type="button" class="filter" data-filter="completed" aria-pressed="false">Completadas</button>
+            </div>
+            <span id="results-label" class="results-label"></span>
+          </div>
+          <p id="app-message" role="status" aria-live="polite" class="status-line"></p>
+          <ul id="task-list" class="task-list" aria-label="Lista de tareas"></ul>
+          <div id="empty-state" class="empty-state" hidden>
+            <div class="empty-symbol" aria-hidden="true">✧</div>
+            <h3>Todo despejado</h3>
+            <p>Aquí aparecerán las tareas de esta categoría.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer"><span>© 2026 StudyFlow · Proyecto académico</span><span>Hecho con HTML, CSS, JavaScript, Node.js y PostgreSQL</span></footer>
+  </div>
+</body>
+</html>
