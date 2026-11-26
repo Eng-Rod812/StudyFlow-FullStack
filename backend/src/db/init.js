@@ -5,10 +5,13 @@ const path = require("node:path");
 const pool = require("./pool");
 
 async function initializeDatabase() {
-  // Para este prototipo, crea las tablas en la primera ejecución.
   const sql = await fs.readFile(path.join(__dirname, "schema.sql"), "utf8");
   await pool.query(sql);
-  await pool.query("SELECT 1");
+  // La cuenta con ADMIN_EMAIL siempre queda con rol admin (bootstrap del primer administrador).
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  if (adminEmail) {
+    await pool.query("UPDATE users SET role = 'admin' WHERE email = $1 AND role <> 'admin'", [adminEmail]);
+  }
 }
 
 module.exports = initializeDatabase;

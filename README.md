@@ -1,88 +1,100 @@
-[README.md](https://github.com/user-attachments/files/34302401/README.md)
-# StudyFlow Full Stack
+# StudyFlow Full Stack — Entrega final
 
-Aplicación web para organizar tareas académicas. Permite crear una cuenta, iniciar sesión y administrar tareas personales mediante una interfaz conectada a una API REST y a PostgreSQL.
+Aplicación web para organizar tareas académicas con prioridades, fechas límite, presupuesto de estudio en pesos (API externa de tipo de cambio) y panel de administración.
 
-**Aplicación publicada:** https://studyflow-fullstack.onrender.com  
+**Aplicación publicada:** https://studyflow-fullstack.onrender.com
 **Código fuente:** https://github.com/Eng-Rod812/StudyFlow-FullStack
 
 ## Tecnologías
 
-- **Frontend:** HTML, CSS y JavaScript.
-- **Backend:** Node.js y Express.
-- **Base de datos:** PostgreSQL (Neon).
-- **Autenticación:** JSON Web Token (JWT) y contraseñas protegidas mediante hash con bcryptjs.
-- **Pruebas de API:** Postman.
-- **Despliegue:** Render.
+| Capa | Herramientas |
+|---|---|
+| Frontend | React 19, React Router 7, Vite, CSS propio (responsivo, modo oscuro) |
+| Backend | Node.js 22, Express 5, helmet, express-rate-limit, cors |
+| Base de datos | PostgreSQL (Neon en producción) con `pg` y consultas parametrizadas |
+| Seguridad | JWT (HS256) + bcryptjs (costo 12), roles `user` / `admin` (RBAC) |
+| API externa | [Frankfurter](https://frankfurter.dev) (REST, tipo de cambio USD→MXN, datos del BCE) |
+| Pruebas | Jest + Supertest (unitarias, funcionales, seguridad), Postman |
+| Despliegue | Render (Blueprint `render.yaml`) o Docker (`Dockerfile`, `docker-compose.yml`) |
 
 ## Funcionalidades
 
-- Registro e inicio de sesión de usuarios.
-- Creación, consulta, edición, marcado como completada y eliminación de tareas.
-- Filtros de tareas y contador de progreso.
-- Persistencia de los datos en PostgreSQL.
-- Rutas protegidas: cada usuario administra solamente sus propias tareas.
-- Interfaz adaptable a distintos tamaños de pantalla.
+- Registro, inicio de sesión y **sesión persistente** con cierre automático al vencer el JWT.
+- CRUD de tareas con prioridad, fecha límite y costo en USD.
+- **Filtros, búsqueda, orden y paginación** en `GET /api/tasks` (los filtros viven en la URL).
+- **Presupuesto de estudio**: convierte el costo pendiente de USD a MXN con la API externa (con caché y degradación si la API falla).
+- **Roles**: el administrador gestiona usuarios (listar, buscar, cambiar rol, eliminar) y ve estadísticas.
+- Rutas dinámicas en React Router (`/tareas/:id`), rutas protegidas y por rol.
 
-## Estructura principal
+## Estructura
 
 ```text
-StudyFlow-FullStack/
-├── frontend/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
+StudyFlow_FullStack/
+├── frontend/                 # React + Vite
+│   └── src/ (pages/, components/, api.js, auth.jsx, App.jsx, styles.css)
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/
-│   │   ├── db/
-│   │   ├── middleware/
-│   │   ├── routes/
-│   │   ├── app.js
-│   │   └── server.js
-│   ├── .env.example
-│   └── package.json
-├── .gitignore
-└── render.yaml
+│   ├── src/ (controllers/, routes/, middleware/, services/, utils/, db/)
+│   └── tests/ (unit/, integration/)
+├── documentacion/            # Documento técnico, capturas, colección Postman
+├── Dockerfile · docker-compose.yml · render.yaml
+└── README.md
 ```
 
 ## Instalación local
 
-**Requisitos:** Node.js 20 o posterior, npm y una base de datos PostgreSQL accesible.
-
-1. Clona el repositorio y entra a `backend`.
-2. Copia `backend/.env.example` como `backend/.env`.
-3. Configura `DATABASE_URL` y un `JWT_SECRET` aleatorio de al menos 32 caracteres en `backend/.env`.
-4. Desde la carpeta `backend`, instala las dependencias e inicia el servidor:
+Requisitos: Node.js 20+ y PostgreSQL.
 
 ```bash
-npm install
-npm start
+# 1) Frontend: compilar
+cd frontend && npm install && npm run build
+# 2) Backend: configurar y arrancar
+cd ../backend && npm install
+cp .env.example .env      # edita DATABASE_URL, JWT_SECRET y ADMIN_EMAIL
+npm start                 # http://localhost:3000
 ```
 
-5. Abre **http://localhost:3000** en el navegador.
+Desarrollo con recarga en caliente: `npm run dev` en `backend/` y `npm run dev` en `frontend/` (http://localhost:5173, con proxy a la API).
+En PowerShell, si se bloquea `npm`, usa `npm.cmd`.
 
-El servidor Express sirve el frontend y la API. Al arrancar, crea las tablas necesarias si todavía no existen. El archivo `.env` está excluido de Git para evitar publicar credenciales.
+**Administrador:** el correo definido en `ADMIN_EMAIL` recibe el rol `admin` al registrarse (o al reiniciar el servidor si ya existía).
 
-> En PowerShell, si la ejecución de scripts bloquea `npm`, puedes utilizar `npm.cmd install` y `npm.cmd start`.
+## Pruebas
+
+Crea una base vacía (`createdb studyflow_test`) y ejecuta:
+
+```bash
+cd backend
+# Windows (PowerShell): $env:TEST_DATABASE_URL="postgresql://postgres:TU_PASSWORD@localhost:5432/studyflow_test"
+TEST_DATABASE_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/studyflow_test npm test
+npm run test:coverage
+```
+
+Las pruebas **truncan las tablas** de la base indicada: usa siempre una base exclusiva para pruebas.
+La suite incluye 116 casos: unitarios (paginación, validación, errores, servicio de API externa con `fetch` simulado), funcionales (CRUD, filtros, roles) y de seguridad (inyección SQL/NoSQL, JWT falsificado/`alg:none`/vencido, escalada de privilegios, mass assignment, XSS, cabeceras, fuerza bruta). Cobertura: ~98 % de líneas.
+Colección Postman: `documentacion/StudyFlow.postman_collection.json`.
 
 ## API REST
 
-| Método | Ruta | Descripción | Autenticación |
+| Método | Ruta | Descripción | Acceso |
 |---|---|---|---|
-| GET | `/api/health` | Verificar el estado de la API | No |
-| POST | `/api/auth/register` | Registrar usuario | No |
-| POST | `/api/auth/login` | Iniciar sesión | No |
-| GET | `/api/auth/me` | Consultar perfil | Sí |
-| GET | `/api/tasks` | Listar tareas del usuario | Sí |
-| POST | `/api/tasks` | Crear tarea | Sí |
-| PATCH | `/api/tasks/:id` | Editar título o estado | Sí |
-| DELETE | `/api/tasks/:id` | Eliminar tarea | Sí |
-
-Las rutas protegidas requieren el encabezado `Authorization: Bearer <token>`. El backend valida las solicitudes y utiliza consultas parametrizadas para acceder a PostgreSQL.
+| GET | `/api/health` | Estado del servicio | Público |
+| POST | `/api/auth/register` | Crear cuenta (devuelve JWT) | Público |
+| POST | `/api/auth/login` | Iniciar sesión (devuelve JWT) | Público |
+| GET | `/api/auth/me` | Perfil y rol actual | JWT |
+| GET | `/api/tasks` | Listar: `status`, `priority`, `q`, `sort`, `order`, `page`, `limit` | JWT |
+| GET | `/api/tasks/budget` | Costos pendientes/totales convertidos a MXN (API externa) | JWT |
+| GET | `/api/tasks/:id` | Obtener una tarea | JWT (propietario) |
+| POST | `/api/tasks` | Crear tarea | JWT |
+| PATCH | `/api/tasks/:id` | Actualización parcial | JWT (propietario) |
+| DELETE | `/api/tasks/:id` | Eliminar | JWT (propietario) |
+| GET | `/api/external/exchange-rate?from=USD&to=MXN` | Tipo de cambio | JWT |
+| GET | `/api/admin/stats` | Estadísticas globales | Admin |
+| GET | `/api/admin/users?q=&page=&limit=` | Usuarios paginados | Admin |
+| PATCH | `/api/admin/users/:id/role` | Cambiar rol | Admin |
+| DELETE | `/api/admin/users/:id` | Eliminar usuario y sus tareas | Admin |
 
 ## Despliegue
 
-La aplicación está publicada como servicio web de Node.js en Render y utiliza una base de datos PostgreSQL alojada en Neon. Las credenciales y la clave JWT se configuran como variables de entorno del servicio, sin incluirlas en el repositorio.
+**Render (recomendado):** crea un *Web Service* desde el repositorio (o usa el Blueprint `render.yaml`), y define las variables `DATABASE_URL` (cadena de Neon con `?sslmode=require`), `JWT_SECRET` (aleatorio, 32+ caracteres) y `ADMIN_EMAIL`. Build: `cd frontend && npm install && npm run build && cd ../backend && npm install --omit=dev`. Start: `cd backend && npm start`.
 
-**URL:** https://studyflow-fullstack.onrender.com
+**Docker:** `docker compose up --build` levanta PostgreSQL y la app en http://localhost:3000.

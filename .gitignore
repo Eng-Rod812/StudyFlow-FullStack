@@ -5,3 +5,18 @@ node_modules/
 .DS_Store
 *.log
 coverage/
+frontend/dist/
+
+# Documentacion y evidencias academicas
+documentacion/
+*.docx
+*.pdf
+*.mp4
+*.mov
+*.zip
+*.rar
+
+# Capturas fuera de documentacion
+capturas/
+screenshots/
+evidencias/

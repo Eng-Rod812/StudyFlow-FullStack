@@ -1,16 +1,23 @@
-# Plantilla opcional de despliegue; no contiene claves reales.
+# Blueprint de Render: un solo servicio web (Express sirve la API y el frontend React compilado).
+# No contiene claves reales; DATABASE_URL se captura en el panel de Render (cadena de Neon).
 services:
   - type: web
     name: studyflow-fullstack
     runtime: node
-    buildCommand: cd backend && npm install
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install --omit=dev
     startCommand: cd backend && npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 22
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 2h
+      - key: ADMIN_EMAIL
+        sync: false
