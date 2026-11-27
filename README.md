@@ -35,7 +35,7 @@ StudyFlow_FullStack/
 ├── backend/
 │   ├── src/ (controllers/, routes/, middleware/, services/, utils/, db/)
 │   └── tests/ (unit/, integration/)
-├── documentacion/            # Documento técnico, capturas, colección Postman
+├── documentacion/            # informe final en PDF y colección Postman
 ├── Dockerfile · docker-compose.yml · render.yaml
 └── README.md
 ```
@@ -95,6 +95,6 @@ Colección Postman: `documentacion/StudyFlow.postman_collection.json`.
 
 ## Despliegue
 
-**Render (recomendado):** crea un *Web Service* desde el repositorio (o usa el Blueprint `render.yaml`), y define las variables `DATABASE_URL` (cadena de Neon con `?sslmode=require`), `JWT_SECRET` (aleatorio, 32+ caracteres) y `ADMIN_EMAIL`. Build: `cd frontend && npm install && npm run build && cd ../backend && npm install --omit=dev`. Start: `cd backend && npm start`.
+**Render (recomendado):** crea un *Web Service* desde el repositorio (o usa el Blueprint `render.yaml`), y define las variables `DATABASE_URL` (cadena de Neon con `?sslmode=require`), `JWT_SECRET` (aleatorio, 32+ caracteres) y `ADMIN_EMAIL`. Build: `cd frontend && npm ci --include=dev && npm run build && cd ../backend && npm ci --omit=dev`. Start: `cd backend && npm start`.
 
 **Docker:** `docker compose up --build` levanta PostgreSQL y la app en http://localhost:3000.
